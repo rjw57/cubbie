@@ -4,6 +4,7 @@ Various useful pytest fixtures and configuration.
 """
 
 from flask.ext.migrate import Migrate, upgrade, downgrade
+from mixer.backend.flask import mixer as _mixer
 import pytest
 
 from cubbie.webapp import create_app, db as _db
@@ -29,9 +30,10 @@ def app(request):
     request.addfinalizer(teardown)
     return app
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='function')
 def db(app, request):
     _db.app = app
+    _db.create_all()
 
     def teardown():
         _db.drop_all()
@@ -39,7 +41,7 @@ def db(app, request):
     request.addfinalizer(teardown)
     return _db
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='function')
 def migrate(app, db):
     return Migrate(app, db)
 
@@ -62,3 +64,7 @@ def session(db, request):
     request.addfinalizer(teardown)
     return session
 
+@pytest.fixture(scope='session')
+def mixer(app):
+    _mixer.init_app(app)
+    return _mixer

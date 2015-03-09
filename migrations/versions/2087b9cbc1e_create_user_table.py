@@ -17,11 +17,9 @@ import sqlalchemy as sa
 def upgrade():
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('displayname', sa.Text(), nullable=False),
+    sa.Column('displayname', sa.Text(), nullable=False, index=True),
     sa.PrimaryKeyConstraint('id')
     )
-
-    op.create_index('idx_user_displayname', 'users', ['displayname'])
 
 def downgrade():
     op.drop_table('users')
