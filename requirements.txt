@@ -1,0 +1,6 @@
+## Requirements file for running tests under Travis-CI or
+## similar CI infrastructure. These are *NOT* the requirements for cubbie.
+## They're the requirements for the test-runner.
+
+# Testing
+tox
