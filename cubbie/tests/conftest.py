@@ -27,7 +27,7 @@ def app(postgresql, request):
 
     app = create_app()
     app.config.from_object(dict(
-        # Create an in-memory database
+        # Create an temporary database
         SQLALCHEMY_DATABASE_URI=postgresql.url(),
 
         # Enable testing
