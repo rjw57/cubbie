@@ -21,9 +21,11 @@ class Production(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
+    slug = db.Column(db.Text, nullable=False)
     productions = db.relationship('Performance', backref='production')
 
 db.Index('idx_production_name', Production.name)
+db.Index('idx_production_slug', Production.slug)
 
 class Performance(db.Model):
     __tablename__ = 'performances'
