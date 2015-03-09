@@ -3,7 +3,7 @@
 """
 import pytest
 
-from cubbie.model import User#, Production
+from cubbie.model import User, Production
 
 @pytest.fixture()
 def users(mixer, session):
@@ -34,11 +34,11 @@ def test_delete_user(users, session):
     session.commit()
     assert User.query.filter_by(displayname=u.displayname).count() == 0
     assert User.query.count() == n_u - 1
-#
-#@pytest.fixture()
-#def productions(mixer, session):
-#    mixer.cycle(5).blend(Production)
-#
-#def test_productions_creates(productions):
-#    """The production fixture should have > 3 productions."""
-#    assert Production.query.count() > 3
+
+@pytest.fixture()
+def productions(mixer, session):
+    mixer.cycle(5).blend(Production)
+
+def test_productions_creates(productions):
+    """The production fixture should have > 3 productions."""
+    assert Production.query.count() > 3
