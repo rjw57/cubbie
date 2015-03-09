@@ -30,11 +30,16 @@ class Performance(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     starts_at = db.Column(db.DateTime(timezone=True), nullable=False)
-    duration = db.Column(db.Interval(native=True), nullable=False)
+    ends_at = db.Column(db.DateTime(timezone=True), nullable=False)
     production_id = db.Column(db.Integer, db.ForeignKey('productions.id'),
             nullable=False)
     is_cancelled = db.Column(db.Boolean, nullable=False, default=False)
     is_deleted = db.Column(db.Boolean, nullable=False, default=False)
+
+    __table_args__ = (
+        # Ensure that performance is not -ve duration
+        db.CheckConstraint('ends_at > starts_at'),
+    )
 
 db.Index('idx_performance_production', Performance.production_id)
 db.Index('idx_performance_starts_at', Performance.starts_at)
@@ -51,6 +56,13 @@ class SalesDatum(db.Model):
     is_valid = db.Column(db.Boolean, nullable=False, default=False)
     sold = db.Column(db.Integer, nullable=False)
     available = db.Column(db.Integer, nullable=False)
+
+    __table_args__ = (
+        # Ensure no. sold is +ve
+        db.CheckConstraint('sold > 0'),
+        # Ensure no. sold is not more than available
+        db.CheckConstraint('sold <= available'),
+    )
 
 db.Index('idx_sales_production', SalesDatum.production_id)
 db.Index('idx_sales_measured_at', SalesDatum.measured_at)

@@ -2,13 +2,22 @@
 
 """
 import pytest
+from sqlalchemy.exc import IntegrityError
 
-from cubbie.model import User, Production
+from cubbie.model import User, Production, SalesDatum, Performance
 
 @pytest.fixture()
 def users(mixer, session):
     """Create mock users."""
     mixer.cycle(5).blend(User)
+
+@pytest.fixture()
+def productions(mixer, session):
+    mixer.cycle(5).blend(Production)
+
+@pytest.fixture()
+def performances(mixer, session, productions):
+    mixer.cycle(5).blend(Performance)
 
 def test_user_create(session):
     """Creating a user should add it to the database."""
@@ -35,10 +44,39 @@ def test_delete_user(users, session):
     assert User.query.filter_by(displayname=u.displayname).count() == 0
     assert User.query.count() == n_u - 1
 
-@pytest.fixture()
-def productions(mixer, session):
-    mixer.cycle(5).blend(Production)
-
 def test_productions_creates(productions):
     """The production fixture should have > 3 productions."""
     assert Production.query.count() > 3
+
+def test_inconsistent_sales(mixer, session, productions):
+    """Creating an inconsistent sales datum fails."""
+    with pytest.raises(IntegrityError):
+        s = mixer.blend(SalesDatum, sold=5, available=3)
+
+def test_consistent_sales(mixer, session, productions):
+    """Creating an sales datum where sold == available succeeds."""
+    s = mixer.blend(SalesDatum, sold=5, available=5)
+
+def test_consistent_sales(mixer, session, productions):
+    """Creating an sales datum where sold -ve fails."""
+    with pytest.raises(IntegrityError):
+        s = mixer.blend(SalesDatum, sold=-5, available=5)
+
+def test_consistent_sales(mixer, session, productions):
+    """Creating an sales datum where available -ve fails."""
+    with pytest.raises(IntegrityError):
+        s = mixer.blend(SalesDatum, available=-5)
+
+def test_negative_duration_performance(mixer, session, productions):
+    """Creating a negative duration performance fails."""
+    from datetime import timedelta, datetime
+    now = datetime.utcnow()
+    with pytest.raises(IntegrityError):
+        s = mixer.blend(Performance, starts_at=now, ends_at=now - timedelta(minutes=1))
+
+def test_performance(mixer, session, productions):
+    """Creating a performance succeeds."""
+    from datetime import timedelta, datetime
+    now = datetime.utcnow()
+    s = mixer.blend(Performance, starts_at=now, ends_at=now + timedelta(minutes=1))
+

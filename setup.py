@@ -17,6 +17,10 @@ setup(
         "flask-migrate",
         "flask-script",
         "flask-sqlalchemy",
+
+        # Postgres and database support
+        "sqlalchemy",
+        "psycopg2",
     ],
     tests_require=[
         "tox",

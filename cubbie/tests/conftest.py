@@ -6,16 +6,29 @@ Various useful pytest fixtures and configuration.
 from flask.ext.migrate import Migrate, upgrade, downgrade
 from mixer.backend.flask import mixer as _mixer
 import pytest
+from testing.postgresql import Postgresql
 
 from cubbie.webapp import create_app
 from cubbie.model import db as _db
 
 @pytest.fixture(scope='session')
-def app(request):
+def postgresql(request):
+    # Create temporary database
+    psql = Postgresql()
+
+    def teardown():
+        psql.stop()
+    request.addfinalizer(teardown)
+
+    return psql
+
+@pytest.fixture(scope='session')
+def app(postgresql, request):
+
     app = create_app()
     app.config.from_object(dict(
         # Create an in-memory database
-        SQLALCHEMY_DATABASE_URI='sqlite://',
+        SQLALCHEMY_DATABASE_URI=postgresql.url(),
 
         # Enable testing
         TESTING=True,
@@ -31,7 +44,7 @@ def app(request):
     request.addfinalizer(teardown)
     return app
 
-@pytest.fixture(scope='function')
+@pytest.fixture()
 def db(app, request):
     _db.app = app
     _db.create_all()
@@ -42,11 +55,11 @@ def db(app, request):
     request.addfinalizer(teardown)
     return _db
 
-@pytest.fixture(scope='function')
+@pytest.fixture()
 def migrate(app, db):
     return Migrate(app, db)
 
-@pytest.fixture(scope='function')
+@pytest.fixture()
 def session(db, request):
     """Creates a new database session for a test."""
     connection = db.engine.connect()
@@ -65,7 +78,7 @@ def session(db, request):
     request.addfinalizer(teardown)
     return session
 
-@pytest.fixture(scope='session')
-def mixer(app):
+@pytest.fixture()
+def mixer(app, session):
     _mixer.init_app(app)
     return _mixer
