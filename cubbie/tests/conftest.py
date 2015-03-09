@@ -7,7 +7,8 @@ from flask.ext.migrate import Migrate, upgrade, downgrade
 from mixer.backend.flask import mixer as _mixer
 import pytest
 
-from cubbie.webapp import create_app, db as _db
+from cubbie.webapp import create_app
+from cubbie.model import db as _db
 
 @pytest.fixture(scope='session')
 def app(request):

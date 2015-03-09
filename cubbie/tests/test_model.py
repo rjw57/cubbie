@@ -3,9 +3,9 @@
 """
 import pytest
 
-from cubbie.model import User
+from cubbie.model import User#, Production
 
-@pytest.fixture(scope='function')
+@pytest.fixture()
 def users(mixer, session):
     """Create mock users."""
     mixer.cycle(5).blend(User)
@@ -21,7 +21,7 @@ def test_user_create(session):
     assert User.query.filter_by(displayname='Bob Ferris').count() == 1
     assert User.query.filter_by(displayname='Joe Nonexist').count() == 0
 
-def test_user_fixtures_created(users, session):
+def test_user_fixtures_created(users):
     """The user fixtures should have more than three users."""
     assert User.query.count() > 3
 
@@ -34,4 +34,11 @@ def test_delete_user(users, session):
     session.commit()
     assert User.query.filter_by(displayname=u.displayname).count() == 0
     assert User.query.count() == n_u - 1
-
+#
+#@pytest.fixture()
+#def productions(mixer, session):
+#    mixer.cycle(5).blend(Production)
+#
+#def test_productions_creates(productions):
+#    """The production fixture should have > 3 productions."""
+#    assert Production.query.count() > 3
