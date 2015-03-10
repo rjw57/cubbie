@@ -127,3 +127,21 @@ def test_capability_fixtures(mixer):
     assert Capability.query.count() == 0
     create_capability_fixtures()
     assert Capability.query.count() > 0
+
+def test_member_user_fixture(member_user):
+    """The "member" user is indeed a member of some production and only a member."""
+
+    prods = User.query.filter(User.id == member_user.id).join(Capability).join(Production)
+    prods = prods.filter(Capability.type == 'member')
+    prods = prods.with_entities(User.displayname, Capability.type, Production.id).all()
+
+    assert len(prods) == 1
+    for n, t, p_id in prods:
+        assert n == member_user.displayname
+        assert t == 'member'
+        assert p_id is not None
+
+    # Check that the user is not some other class of user
+    prods = User.query.filter(User.id == member_user.id).join(Capability).join(Production)
+    prods = prods.with_entities(User.displayname, Capability.type, Production.id).all()
+    assert len(prods) == 1

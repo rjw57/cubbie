@@ -10,8 +10,10 @@ from testing.postgresql import Postgresql
 
 from cubbie.webapp import create_app
 from cubbie.model import db as _db
+from cubbie.model import User, Capability
 from cubbie.fixture import (
-    create_user_fixtures, create_performance_fixtures, create_production_fixtures
+    create_user_fixtures, create_performance_fixtures, create_production_fixtures,
+    create_capability_fixtures
 )
 
 @pytest.fixture(scope='session')
@@ -99,3 +101,15 @@ def productions(mixer, session):
 @pytest.fixture()
 def performances(mixer, session, productions):
     create_performance_fixtures(15)
+    create_production_fixtures(5)
+
+@pytest.fixture()
+def capabilities(mixer, session, productions, users):
+    create_capability_fixtures(15)
+
+@pytest.fixture()
+def member_user(mixer, session, capabilities):
+    """A user who is a member of a production."""
+    u = mixer.blend(User, displayname='testuser')
+    mixer.blend(Capability, user=u, type='member', production=mixer.SELECT)
+    return u
