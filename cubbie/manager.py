@@ -36,11 +36,13 @@ class GenFakeData(Command):
         from mixer.backend.flask import mixer
         from datetime import datetime, timedelta
         from random import seed, randint, choice
+        from faker import Faker
 
         mixer.init_app(current_app)
+        fake = Faker()
 
-        mixer.cycle(10).blend(User)
-        mixer.cycle(5).blend(Production)
+        mixer.cycle(10).blend(User, displayname=fake.name)
+        mixer.cycle(5).blend(Production, name=fake.sentence, slug=fake.slug)
 
         def sa(c):
             return datetime.utcnow() + timedelta(minutes=10+5*c)
