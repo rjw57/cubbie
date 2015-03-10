@@ -7,10 +7,15 @@ import logging
 from flask import current_app
 from flask.ext.migrate import MigrateCommand, Migrate
 from flask.ext.script import Manager, Command
+from mixer.backend.flask import mixer
 
 from cubbie.webapp import create_app
 from cubbie.model import db
 from cubbie.model import User, Production, Performance, SalesDatum, Capability
+from cubbie.fixture import (
+    create_user_fixtures, create_production_fixtures,
+    create_performance_fixtures, create_sales_fixtures, create_capability_fixtures
+)
 
 def create_manager_app(config=None):
     app = create_app()
@@ -32,54 +37,12 @@ class GenFakeData(Command):
             return
 
         db.create_all()
-
-        from mixer.backend.flask import mixer
-        from datetime import datetime, timedelta
-        from random import seed, randint, choice
-        from faker import Faker
-
         mixer.init_app(current_app)
-        fake = Faker()
-
-        mixer.cycle(10).blend(User, displayname=fake.name)
-        mixer.cycle(5).blend(Production, name=fake.sentence, slug=fake.slug)
-
-        def sa(c):
-            return datetime.utcnow() + timedelta(minutes=10+5*c)
-
-        def ea(c):
-            return datetime.utcnow() + timedelta(minutes=20+15*c)
-
-        mixer.cycle(50).blend(Performance,
-            starts_at=mixer.sequence(sa),
-            ends_at=mixer.sequence(ea),
-            production=mixer.SELECT,
-            is_cancelled=mixer.RANDOM,
-            is_deleted=mixer.RANDOM,
-        )
-
-        def ma(c):
-            return datetime.utcnow() + timedelta(days=randint(1,100))
-        def sold(c):
-            seed(c)
-            return randint(0, 65)
-        def avail(c):
-            seed(c)
-            s = randint(0, 65)
-            return s + randint(0, 30)
-
-        mixer.cycle(1000).blend(SalesDatum,
-            measured_at=mixer.sequence(ma),
-            performance=mixer.SELECT,
-            is_valid=mixer.RANDOM,
-            sold=mixer.sequence(sold),
-            available=mixer.sequence(avail),
-        )
-
-        mixer.cycle(100).blend(Capability,
-            user=mixer.SELECT,
-            production=mixer.SELECT,
-        )
+        create_user_fixtures(10)
+        create_production_fixtures(5)
+        create_capability_fixtures(10)
+        create_performance_fixtures(25)
+        create_sales_fixtures(200)
 
 manager = Manager(create_manager_app)
 manager.add_command('db', MigrateCommand)
