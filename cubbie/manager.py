@@ -29,10 +29,10 @@ class GenFakeData(Command):
     "generates fake data in the database"
 
     def run(self):
-        if current_app.config.get('DEVELOPMENT') is None:
+        if not current_app.debug:
             logging.error(
-                'genfake command is only available in development. '
-                'Ensure that DEVELOPMENT is True in app config.'
+                'genfake command is only available in deebug modfe. '
+                'Ensure that DEBUG is True in app config.'
             )
             return
 
