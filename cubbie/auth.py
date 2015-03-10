@@ -12,7 +12,6 @@ def make_user_token(user, expires_in=3600):
     the given user. The user must be an instance of cubbie.model.User.
 
     """
-    print(current_app.config)
     secret = current_app.config.get('JWT_SECRET_KEY')
     if secret is None:
         raise RuntimeError('application must have JWT_SECRET_KEY set')
