@@ -65,13 +65,9 @@ class GenFakeData(Command):
             s = randint(0, 65)
             return s + randint(0, 30)
 
-        assert Performance.query.count() > 0
-        performances = list(
-            p.id for p in Performance.query.add_columns(Performance.id)
-        )
         mixer.cycle(1000).blend(SalesDatum,
             measured_at=mixer.sequence(ma),
-            performance_id=mixer.sequence(lambda _: choice(performances)),
+            performance=mixer.SELECT,
             is_valid=mixer.RANDOM,
             sold=mixer.sequence(sold),
             available=mixer.sequence(avail),
