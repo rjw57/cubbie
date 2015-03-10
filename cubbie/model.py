@@ -37,6 +37,7 @@ class Performance(db.Model):
             nullable=False)
     is_cancelled = db.Column(db.Boolean, nullable=False, default=False)
     is_deleted = db.Column(db.Boolean, nullable=False, default=False)
+    sales = db.relationship('SalesDatum', backref='performance')
 
     __table_args__ = (
         # Ensure that performance is not -ve duration
