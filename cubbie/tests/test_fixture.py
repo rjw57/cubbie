@@ -2,6 +2,7 @@
 Tests for fixtures in general (as opposed to tests which just use them).
 
 """
+from flask import current_app
 import pytest
 from sqlalchemy.exc import IntegrityError
 
@@ -10,6 +11,25 @@ from cubbie.fixture import (
     create_performance_fixtures, create_sales_fixtures, create_capability_fixtures
 )
 from cubbie.model import User, Production, Performance, SalesDatum, Capability
+
+def test_app_using_postgres(app):
+    """The application's SQLALCHEMY_DATABASE_URI config key should point to
+    a postgres database."""
+    assert app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgresql://')
+
+def test_current_using_postgres(app):
+    """The current application's SQLALCHEMY_DATABASE_URI config key should
+    point to a postgres database."""
+    assert current_app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgresql://')
+
+def test_config_using_postgres(config):
+    """The SQLALCHEMY_DATABASE_URI key in the config fixture should point to a
+    postgres database."""
+    assert config['SQLALCHEMY_DATABASE_URI'].startswith('postgresql://')
+
+def test_debug_enabled(app):
+    """The defaulkt value of app.debug should be True."""
+    assert app.debug
 
 @pytest.mark.app(debug=False)
 def test_user_fixtures_require_debug(app, mixer):
@@ -130,7 +150,6 @@ def test_capability_fixtures(mixer):
 
 def test_member_user_fixture(member_user):
     """The "member" user is indeed a member of some production and only a member."""
-
     prods = User.query.filter(User.id == member_user.id).join(Capability).join(Production)
     prods = prods.filter(Capability.type == 'member')
     prods = prods.with_entities(User.displayname, Capability.type, Production.id).all()

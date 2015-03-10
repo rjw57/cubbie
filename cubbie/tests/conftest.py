@@ -2,6 +2,7 @@
 Various useful pytest fixtures and configuration.
 
 """
+import uuid
 
 from flask.ext.migrate import Migrate, upgrade, downgrade
 from mixer.backend.flask import mixer as _mixer
@@ -9,6 +10,7 @@ import pytest
 from testing.postgresql import Postgresql
 
 from cubbie.webapp import create_app
+from cubbie.auth import make_user_token
 from cubbie.model import db as _db
 from cubbie.model import User, Capability
 from cubbie.fixture import (
@@ -29,16 +31,22 @@ def postgresql(request):
 
 @pytest.fixture(scope='session')
 def app(postgresql, request):
-
     app = create_app()
-    app.config.from_object(dict(
+
+    class TestConfig():
         # Create an temporary database
-        SQLALCHEMY_DATABASE_URI=postgresql.url(),
+        SQLALCHEMY_DATABASE_URI=postgresql.url()
 
         # Enable testing
-        TESTING=True,
-    ))
-    app.debug = True
+        TESTING=True
+
+        # Enable debug
+        DEBUG=True
+
+        # Super-secret JWT key
+        JWT_SECRET_KEY=uuid.uuid4().hex
+
+    app.config.from_object(TestConfig)
 
     # Establish an application context before running the tests.
     ctx = app.app_context()
@@ -113,3 +121,8 @@ def member_user(mixer, session, capabilities):
     u = mixer.blend(User, displayname='testuser')
     mixer.blend(Capability, user=u, type='member', production=mixer.SELECT)
     return u
+
+@pytest.fixture()
+def member_token(member_user):
+    """A token for member_user"""
+    return make_user_token(member_user)
