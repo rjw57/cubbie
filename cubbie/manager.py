@@ -10,6 +10,7 @@ from flask.ext.script import Manager, Command
 
 from cubbie.webapp import create_app
 from cubbie.model import db
+from cubbie.model import User, Production, Performance, SalesDatum, Capability
 
 def create_manager_app(config=None):
     app = create_app()
@@ -33,7 +34,6 @@ class GenFakeData(Command):
         db.create_all()
 
         from mixer.backend.flask import mixer
-        from cubbie.model import User, Production, Performance, SalesDatum
         from datetime import datetime, timedelta
         from random import seed, randint, choice
 
@@ -51,6 +51,7 @@ class GenFakeData(Command):
         mixer.cycle(50).blend(Performance,
             starts_at=mixer.sequence(sa),
             ends_at=mixer.sequence(ea),
+            production=mixer.SELECT,
             is_cancelled=mixer.RANDOM,
             is_deleted=mixer.RANDOM,
         )
@@ -71,6 +72,11 @@ class GenFakeData(Command):
             is_valid=mixer.RANDOM,
             sold=mixer.sequence(sold),
             available=mixer.sequence(avail),
+        )
+
+        mixer.cycle(100).blend(Capability,
+            user=mixer.SELECT,
+            production=mixer.SELECT,
         )
 
 manager = Manager(create_manager_app)
