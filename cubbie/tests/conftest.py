@@ -10,6 +10,9 @@ from testing.postgresql import Postgresql
 
 from cubbie.webapp import create_app
 from cubbie.model import db as _db
+from cubbie.fixture import (
+    create_user_fixtures, create_performance_fixtures, create_production_fixtures
+)
 
 @pytest.fixture(scope='session')
 def postgresql(request):
@@ -33,6 +36,7 @@ def app(postgresql, request):
         # Enable testing
         TESTING=True,
     ))
+    app.debug = True
 
     # Establish an application context before running the tests.
     ctx = app.app_context()
@@ -82,3 +86,16 @@ def session(db, request):
 def mixer(app, session):
     _mixer.init_app(app)
     return _mixer
+
+@pytest.fixture()
+def users(mixer, session):
+    """Create mock users."""
+    create_user_fixtures(5)
+
+@pytest.fixture()
+def productions(mixer, session):
+    create_production_fixtures(5)
+
+@pytest.fixture()
+def performances(mixer, session, productions):
+    create_performance_fixtures(15)
