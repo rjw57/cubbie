@@ -17,7 +17,14 @@ def productions(mixer, session):
 
 @pytest.fixture()
 def performances(mixer, session, productions):
-    mixer.cycle(5).blend(Performance)
+    def sa(c):
+        return datetime.utcnow() + timedelta(minutes=10+5*c)
+    def ea(c):
+        return datetime.utcnow() + timedelta(minutes=20+15*c)
+    mixer.cycle(5).blend(Performance,
+        starts_at=mixer.sequence(sa),
+        ends_at=mixer.sequence(ea)
+    )
 
 def test_user_create(session):
     """Creating a user should add it to the database."""
