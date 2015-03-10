@@ -2,8 +2,11 @@
 Command-line manager utility for cubbie.
 
 """
+import logging
+
+from flask import current_app
 from flask.ext.migrate import MigrateCommand, Migrate
-from flask.ext.script import Manager
+from flask.ext.script import Manager, Command
 
 from cubbie.webapp import create_app
 from cubbie.model import db
@@ -16,8 +19,67 @@ def create_manager_app(config=None):
 
     return app
 
+class GenFakeData(Command):
+    "generates fake data in the database"
+
+    def run(self):
+        if current_app.config.get('DEVELOPMENT') is None:
+            logging.error(
+                'genfake command is only available in development. '
+                'Ensure that DEVELOPMENT is True in app config.'
+            )
+            return
+
+        db.create_all()
+
+        from mixer.backend.flask import mixer
+        from cubbie.model import User, Production, Performance, SalesDatum
+        from datetime import datetime, timedelta
+        from random import seed, randint, choice
+
+        mixer.init_app(current_app)
+
+        mixer.cycle(10).blend(User)
+        mixer.cycle(5).blend(Production)
+
+        def sa(c):
+            return datetime.utcnow() + timedelta(minutes=10+5*c)
+
+        def ea(c):
+            return datetime.utcnow() + timedelta(minutes=20+15*c)
+
+        mixer.cycle(50).blend(Performance,
+            starts_at=mixer.sequence(sa),
+            ends_at=mixer.sequence(ea),
+            is_cancelled=mixer.RANDOM,
+            is_deleted=mixer.RANDOM,
+        )
+
+        def ma(c):
+            return datetime.utcnow() + timedelta(days=randint(1,100))
+        def sold(c):
+            seed(c)
+            return randint(0, 65)
+        def avail(c):
+            seed(c)
+            s = randint(0, 65)
+            return s + randint(0, 30)
+
+        assert Performance.query.count() > 0
+        performances = list(
+            p.id for p in Performance.query.add_columns(Performance.id)
+        )
+        mixer.cycle(1000).blend(SalesDatum,
+            measured_at=mixer.sequence(ma),
+            performance_id=mixer.sequence(lambda _: choice(performances)),
+            is_valid=mixer.RANDOM,
+            sold=mixer.sequence(sold),
+            available=mixer.sequence(avail),
+        )
+
 manager = Manager(create_manager_app)
 manager.add_command('db', MigrateCommand)
+manager.add_command('genfake', GenFakeData)
 manager.add_option('-c', '--config', dest='config', required=False)
 
 def main():

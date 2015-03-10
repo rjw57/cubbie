@@ -21,6 +21,9 @@ setup(
         # Postgres and database support
         "sqlalchemy",
         "psycopg2",
+
+        # Generating fake data in development
+        "mixer",
     ],
     tests_require=[
         "tox",
