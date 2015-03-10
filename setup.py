@@ -24,6 +24,10 @@ setup(
 
         # Generating fake data in development
         "mixer",
+
+        # Authorisation via JWTs
+        "pyjwt",
+        "flask-jwt",
     ],
     tests_require=[
         "tox",
