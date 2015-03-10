@@ -17,6 +17,8 @@ def productions(mixer, session):
 
 @pytest.fixture()
 def performances(mixer, session, productions):
+    from datetime import datetime, timedelta
+
     def sa(c):
         return datetime.utcnow() + timedelta(minutes=10+5*c)
     def ea(c):
@@ -55,39 +57,43 @@ def test_productions_creates(productions):
     """The production fixture should have > 3 productions."""
     assert Production.query.count() > 3
 
-def test_inconsistent_sales(mixer, session, productions):
+def test_inconsistent_sales(mixer, session, performances):
     """Creating an inconsistent sales datum fails."""
     with pytest.raises(IntegrityError):
-        s = mixer.blend(SalesDatum, sold=5, available=3)
+        s = mixer.blend(SalesDatum,
+            sold=5, available=3, performance=mixer.SELECT)
 
-def test_consistent_sales(mixer, session, productions):
+def test_consistent_sales(mixer, session, performances):
     """Creating an sales datum where sold == available succeeds."""
-    s = mixer.blend(SalesDatum, sold=5, available=5)
+    s = mixer.blend(SalesDatum, sold=5, available=5, performance=mixer.SELECT)
 
-def test_zero_sales(mixer, session, productions):
+def test_zero_sales(mixer, session, performances):
     """Creating an sales datum where sold == 0 succeeds."""
-    s = mixer.blend(SalesDatum, sold=0, available=5)
+    s = mixer.blend(SalesDatum, sold=0, available=5, performance=mixer.SELECT)
 
-def test_consistent_sales(mixer, session, productions):
+def test_consistent_sales(mixer, session, performances):
     """Creating an sales datum where sold -ve fails."""
     with pytest.raises(IntegrityError):
-        s = mixer.blend(SalesDatum, sold=-5, available=5)
+        s = mixer.blend(SalesDatum, sold=-5, available=5,
+                performance=mixer.SELECT)
 
-def test_consistent_sales(mixer, session, productions):
+def test_consistent_sales(mixer, session, performances):
     """Creating an sales datum where available -ve fails."""
     with pytest.raises(IntegrityError):
-        s = mixer.blend(SalesDatum, available=-5)
+        s = mixer.blend(SalesDatum, available=-5, performance=mixer.SELECT)
 
-def test_negative_duration_performance(mixer, session, productions):
+def test_negative_duration_performance(mixer, session, performances):
     """Creating a negative duration performance fails."""
     from datetime import timedelta, datetime
     now = datetime.utcnow()
     with pytest.raises(IntegrityError):
-        s = mixer.blend(Performance, starts_at=now, ends_at=now - timedelta(minutes=1))
+        s = mixer.blend(Performance,
+                starts_at=now, ends_at=now - timedelta(minutes=1))
 
 def test_performance(mixer, session, productions):
     """Creating a performance succeeds."""
     from datetime import timedelta, datetime
     now = datetime.utcnow()
-    s = mixer.blend(Performance, starts_at=now, ends_at=now + timedelta(minutes=1))
+    s = mixer.blend(Performance,
+            starts_at=now, ends_at=now + timedelta(minutes=1))
 
