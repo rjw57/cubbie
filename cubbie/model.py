@@ -53,7 +53,7 @@ class SalesDatum(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     measured_at = db.Column(db.DateTime(timezone=True), nullable=False)
-    production_id = db.Column(db.Integer, db.ForeignKey('productions.id'),
+    performance_id = db.Column(db.Integer, db.ForeignKey('performances.id'),
             nullable=False)
     is_valid = db.Column(db.Boolean, nullable=False, default=False)
     sold = db.Column(db.Integer, nullable=False)
@@ -61,11 +61,11 @@ class SalesDatum(db.Model):
 
     __table_args__ = (
         # Ensure no. sold is +ve
-        db.CheckConstraint('sold > 0'),
+        db.CheckConstraint('sold >= 0'),
         # Ensure no. sold is not more than available
         db.CheckConstraint('sold <= available'),
     )
 
-db.Index('idx_sales_production', SalesDatum.production_id)
+db.Index('idx_sales_performance', SalesDatum.performance_id)
 db.Index('idx_sales_measured_at', SalesDatum.measured_at)
 db.Index('idx_sales_is_valid', SalesDatum.is_valid)

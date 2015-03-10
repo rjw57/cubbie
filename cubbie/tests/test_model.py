@@ -57,6 +57,10 @@ def test_consistent_sales(mixer, session, productions):
     """Creating an sales datum where sold == available succeeds."""
     s = mixer.blend(SalesDatum, sold=5, available=5)
 
+def test_zero_sales(mixer, session, productions):
+    """Creating an sales datum where sold == 0 succeeds."""
+    s = mixer.blend(SalesDatum, sold=0, available=5)
+
 def test_consistent_sales(mixer, session, productions):
     """Creating an sales datum where sold -ve fails."""
     with pytest.raises(IntegrityError):
