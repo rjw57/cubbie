@@ -3,4 +3,3 @@ __pycache__
 .tox
 *.egg-info
 dev.sqlite
-.coverage
