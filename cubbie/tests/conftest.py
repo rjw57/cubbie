@@ -5,21 +5,21 @@ Various useful pytest fixtures and configuration.
 import uuid
 
 from flask.ext.migrate import Migrate, upgrade, downgrade
-from mixer.backend.flask import mixer as _mixer
+from mixer.backend.flask import mixer
 import pytest
 from testing.postgresql import Postgresql
 
 from cubbie.webapp import create_app
 from cubbie.auth import make_user_token
-from cubbie.model import db as _db
+from cubbie.model import db
 from cubbie.model import User, Capability
 from cubbie.fixture import (
     create_user_fixtures, create_performance_fixtures, create_production_fixtures,
     create_capability_fixtures
 )
 
-@pytest.fixture(scope='session')
-def postgresql(request):
+@pytest.fixture(scope='module')
+def temp_psql(request):
     # Create temporary database
     psql = Postgresql()
 
@@ -29,13 +29,13 @@ def postgresql(request):
 
     return psql
 
-@pytest.fixture(scope='session')
-def app(postgresql, request):
+@pytest.fixture(scope='module')
+def app(request, temp_psql):
     app = create_app()
 
     class TestConfig():
         # Create an temporary database
-        SQLALCHEMY_DATABASE_URI=postgresql.url()
+        SQLALCHEMY_DATABASE_URI=temp_psql.url()
 
         # Enable testing
         TESTING=True
@@ -48,9 +48,17 @@ def app(postgresql, request):
 
     app.config.from_object(TestConfig)
 
+    # Initialise various DB dependent bits of app
+    mixer.init_app(app)
+    db.init_app(app)
+
     # Establish an application context before running the tests.
     ctx = app.app_context()
     ctx.push()
+
+    # Upgrade the (blank) database to the latest schema
+    Migrate(app, db)
+    upgrade()
 
     def teardown():
         ctx.pop()
@@ -59,64 +67,38 @@ def app(postgresql, request):
     return app
 
 @pytest.fixture()
-def db(app, request):
-    _db.app = app
-    _db.create_all()
-
-    def teardown():
-        _db.drop_all()
-
-    request.addfinalizer(teardown)
-    return _db
-
-@pytest.fixture()
-def migrate(app, db):
-    return Migrate(app, db)
-
-@pytest.fixture()
-def session(db, request):
+def session(app, request):
     """Creates a new database session for a test."""
-    connection = db.engine.connect()
-    transaction = connection.begin()
-
-    options = dict(bind=connection)
-    session = db.create_scoped_session(options=options)
-
-    db.session = session
+    # Remove any data already in the database.
+    db.drop_all()
+    db.create_all()
 
     def teardown():
-        transaction.rollback()
-        connection.close()
-        session.remove()
+        db.session.rollback()
 
     request.addfinalizer(teardown)
-    return session
+    return db.session
 
 @pytest.fixture()
-def mixer(app, session):
-    _mixer.init_app(app)
-    return _mixer
-
-@pytest.fixture()
-def users(mixer, session):
+def users(session):
     """Create mock users."""
     create_user_fixtures(5)
 
 @pytest.fixture()
-def productions(mixer, session):
+def productions(session):
     create_production_fixtures(5)
 
 @pytest.fixture()
-def performances(mixer, session, productions):
+def performances(session, productions):
     create_performance_fixtures(15)
     create_production_fixtures(5)
 
 @pytest.fixture()
-def capabilities(mixer, session, productions, users):
+def capabilities(session, productions, users):
     create_capability_fixtures(15)
 
 @pytest.fixture()
-def member_user(mixer, session, capabilities):
+def member_user(session, capabilities):
     """A user who is a member of a production."""
     u = mixer.blend(User, displayname='testuser')
     mixer.blend(Capability, user=u, type='member', production=mixer.SELECT)

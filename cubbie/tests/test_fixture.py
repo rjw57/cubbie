@@ -32,52 +32,49 @@ def test_debug_enabled(app):
     assert app.debug
 
 @pytest.mark.app(debug=False)
-def test_user_fixtures_require_debug(app, mixer):
+def test_user_fixtures_require_debug(session, app):
     """Trying to create a user fixture requires app.debug == True."""
-    assert app.debug == False
     with pytest.raises(FixtureError):
         create_user_fixtures()
 
 @pytest.mark.app(debug=True)
-def test_user_fixtures(mixer):
+def test_user_fixtures(session):
     """User fixtures are created."""
     assert User.query.count() == 0
     create_user_fixtures()
     assert User.query.count() > 0
 
 @pytest.mark.app(debug=False)
-def test_production_fixtures_require_debug(app, mixer):
+def test_production_fixtures_require_debug(session):
     """Trying to create a production fixture requires app.debug == True."""
-    assert app.debug == False
     with pytest.raises(FixtureError):
         create_production_fixtures()
 
 @pytest.mark.app(debug=True)
-def test_production_fixtures(mixer):
+def test_production_fixtures(session):
     """Production fixtures are created."""
     assert Production.query.count() == 0
     create_production_fixtures()
     assert Production.query.count() > 0
 
 @pytest.mark.app(debug=False)
-def test_performance_fixtures_require_debug(app, mixer):
+def test_performance_fixtures_require_debug(session, app):
     """Trying to create a performance fixture requires app.debug == True."""
     app.debug = True
     create_production_fixtures() # required for performances
     app.debug = False
 
-    assert app.debug == False
     with pytest.raises(FixtureError):
         create_performance_fixtures()
 
 @pytest.mark.app(debug=True)
-def test_performance_fixtures_need_productions(mixer):
+def test_performance_fixtures_need_productions(session):
     """Performance fixtures are created only when there are productions."""
     with pytest.raises(IntegrityError):
         create_performance_fixtures()
 
 @pytest.mark.app(debug=True)
-def test_performance_fixtures(mixer):
+def test_performance_fixtures(session):
     """Performance fixtures are created."""
     create_production_fixtures() # required for performances
     assert Performance.query.count() == 0
@@ -85,26 +82,25 @@ def test_performance_fixtures(mixer):
     assert Performance.query.count() > 0
 
 @pytest.mark.app(debug=False)
-def test_sales_fixtures_require_debug(app, mixer):
+def test_sales_fixtures_require_debug(session, app):
     """Trying to create a sales fixture requires app.debug == True."""
     app.debug = True
     create_production_fixtures()
     create_performance_fixtures()
     app.debug = False
 
-    assert app.debug == False
     with pytest.raises(FixtureError):
         create_sales_fixtures()
 
 @pytest.mark.app(debug=True)
-def test_sales_fixtures_need_performances(mixer):
+def test_sales_fixtures_need_performances(session):
     """SalesDatum fixtures are created only when there are >0 performances."""
     create_production_fixtures() # but no performances
     with pytest.raises(IntegrityError):
         create_sales_fixtures()
 
 @pytest.mark.app(debug=True)
-def test_capability_fixtures(mixer):
+def test_capability_fixtures(session):
     """Capability fixtures are created."""
     create_production_fixtures() # required for performances
     create_performance_fixtures() # required for capabilities
@@ -113,7 +109,7 @@ def test_capability_fixtures(mixer):
     assert Capability.query.count() > 0
 
 @pytest.mark.app(debug=False)
-def test_capability_fixtures_require_debug(app, mixer):
+def test_capability_fixtures_require_debug(session, app):
     """Trying to create a capabilities fixture requires app.debug == True."""
     app.debug = True
     create_production_fixtures()
@@ -121,26 +117,25 @@ def test_capability_fixtures_require_debug(app, mixer):
     create_user_fixtures()
     app.debug = False
 
-    assert app.debug == False
     with pytest.raises(FixtureError):
         create_capability_fixtures()
 
 @pytest.mark.app(debug=True)
-def test_capability_fixtures_need_users(mixer):
+def test_capability_fixtures_need_users(session):
     """Capability fixtures are created only when there are >0 users."""
     create_production_fixtures()
     with pytest.raises(IntegrityError):
         create_capability_fixtures()
 
 @pytest.mark.app(debug=True)
-def test_capability_fixtures_need_performances(mixer):
+def test_capability_fixtures_need_performances(session):
     """Capability fixtures are created only when there are >0 productions."""
     create_user_fixtures()
     with pytest.raises(IntegrityError):
         create_capability_fixtures()
 
 @pytest.mark.app(debug=True)
-def test_capability_fixtures(mixer):
+def test_capability_fixtures(session):
     """Capability fixtures are created."""
     create_production_fixtures() # required for capabilities
     create_user_fixtures() # required for capabilities

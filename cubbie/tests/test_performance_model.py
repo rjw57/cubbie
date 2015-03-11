@@ -2,6 +2,7 @@
 Test Performance model
 
 """
+from mixer.backend.flask import mixer
 import pytest
 from sqlalchemy.exc import IntegrityError
 
@@ -13,7 +14,7 @@ from cubbie.fixture import (
 def test_fixtures_created(performances):
     assert Performance.query.count() > 0
 
-def test_negative_duration(mixer, performances):
+def test_negative_duration(performances):
     """Creating a negative duration performance fails."""
     from datetime import timedelta, datetime
     now = datetime.utcnow()
@@ -21,7 +22,7 @@ def test_negative_duration(mixer, performances):
         s = mixer.blend(Performance,
                 starts_at=now, ends_at=now - timedelta(minutes=1))
 
-def test_creation(mixer, productions):
+def test_creation(productions):
     """Creating a performance succeeds."""
     from datetime import timedelta, datetime
     now = datetime.utcnow()

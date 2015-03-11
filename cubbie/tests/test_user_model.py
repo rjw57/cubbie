@@ -31,4 +31,3 @@ def test_delete_user(users, session):
     session.commit()
     assert User.query.filter_by(displayname=u.displayname).count() == 0
     assert User.query.count() == n_u - 1
-

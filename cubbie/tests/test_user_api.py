@@ -2,8 +2,8 @@
 Test user profile API.
 
 """
-
 from flask import url_for
+from mixer.backend.flask import mixer
 
 from cubbie.model import Capability, Production, User
 
@@ -23,7 +23,7 @@ def test_profile(client, member_token, member_user):
     assert resp.json['_type'] == 'User#profile'
     assert resp.json['displayname'] == member_user.displayname
 
-def test_profile_productions(client, member_token, member_user, mixer):
+def test_profile_productions(client, member_token, member_user):
     """The user is a member of all the productions in the profile."""
     # Add user as a member to some more productions
     mixer.cycle(3).blend(Capability, user=member_user, production=mixer.SELECT, type='member')
