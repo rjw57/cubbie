@@ -4,10 +4,12 @@ WSGI-compatible web application object for cubbie.
 """
 from flask import (
     Flask, Blueprint, jsonify, render_template, current_app,
-    url_for
+    url_for, redirect
 )
 from flask_bower import Bower
-from flask_jwt import jwt_required, JWT, current_user
+from flask_jwt import (
+    jwt_required, JWT, current_user, verify_jwt, JWTError
+)
 
 from cubbie.model import db, User, Production, Capability
 from cubbie.signin import gplus
@@ -32,8 +34,12 @@ ui = Blueprint(
     static_folder='ui/static', static_url_path='/static/ui',
 )
 
-@ui.route('/signin')
+@ui.route('/')
 def index():
+    return render_template('index.html')
+
+@ui.route('/signin')
+def signin():
     return render_template('signin.html',
         google=dict(
             client_id=current_app.config['GOOGLE_CLIENT_ID'],
