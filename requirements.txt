@@ -2,5 +2,8 @@
 ## similar CI infrastructure. These are *NOT* the requirements for cubbie.
 ## They're the requirements for the test-runner.
 
+# latest httplib2 with Python3 fixes
+git+https://github.com/jcgregorio/httplib2#egg=httplib2
+
 # Testing
 tox

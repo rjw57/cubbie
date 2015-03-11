@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Login</title>
+
+    <meta name="google-signin-clientid" content="{{ google.client_id }}" />
+    <meta name="google-signin-scope" content="profile" />
+    <meta name="google-signin-cookiepolicy" content="single_host_origin" />
+    <meta name="google-signin-callback" content="signinCallback" />
+    <meta name="google-signin-accesstype" content="offline" />
+
+    <script src="https://apis.google.com/js/client:platform.js?onload=gapiLoaded" async defer></script>
+    <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+</head>
+
+<body>
+<div id="gSignInWrapper">
+    <button id="gplusButton" disabled>
+        Sign in with Google
+    </button>
+</div>
+
+<script>
+function gapiLoaded() {
+    gapi.signin.render('gplusButton');
+    document.getElementById('gplusButton').disabled = false;
+}
+
+function signinCallback(authResult) {
+    var connectUrl = '{{ google.connect_url }}';
+    var body;
+
+    if(authResult.code) {
+        // Request our own JWT-based access token.
+        body = { code: authResult.code };
+        $.ajax({
+            url: connectUrl,
+            type: 'POST',
+            data: JSON.stringify(body),
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function(response) {
+                console.log('resp:', response);
+            },
+        });
+    }
+}
+</script>
+
+</body>
+
+</html>

@@ -7,15 +7,19 @@ import datetime
 
 from flask import current_app
 
-def make_user_token(user, expires_in=3600):
-    """Given a username and server secret, generate an authorization token for
-    the given user. The user must be an instance of cubbie.model.User.
-
-    """
+def make_token(payload, expires_in=600):
+    """Encode an arbitrary payload into a JWT token."""
     secret = current_app.config.get('JWT_SECRET_KEY')
     if secret is None:
         raise RuntimeError('application must have JWT_SECRET_KEY set')
-    return _jwt_token(dict(user=user.id), secret, expires_in=expires_in).decode('ascii')
+    return _jwt_token(payload, secret, expires_in=expires_in).decode('ascii')
+
+def make_user_token(user, expires_in=3600):
+    """Generate an authorization token for the given user. The user must be an
+    instance of cubbie.model.User.
+
+    """
+    return make_token(dict(user=user.id), expires_in=expires_in)
 
 def _to_numeric(dt):
     """Convert a datetime instance to a numeric date as per JWT spec."""

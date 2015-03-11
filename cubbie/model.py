@@ -17,6 +17,21 @@ class User(db.Model):
 
 db.Index('idx_user_displayname', User.displayname)
 
+class UserIdentity(db.Model):
+    __tablename__ = 'user_identities'
+
+    id = db.Column(db.Integer, primary_key=True)
+    provider = db.Column(db.Text, nullable=False)
+    provider_user_id = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+    user = db.relationship('User', uselist=False, backref='identities')
+
+db.Index(
+    'idx_user_identities_provider_provider_id',
+    UserIdentity.provider, UserIdentity.provider_user_id
+)
+
 class Production(db.Model):
     __tablename__ = 'productions'
 

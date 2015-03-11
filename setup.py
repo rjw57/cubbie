@@ -28,6 +28,10 @@ setup(
         # Authorisation via JWTs
         "pyjwt",
         "flask-jwt",
+
+        # Third-party authentication methods
+        "oauth2client",
+        "google-api-python-client",
     ],
     tests_require=[
         "tox",
