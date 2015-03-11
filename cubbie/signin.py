@@ -6,7 +6,7 @@ from apiclient.discovery import build
 from apiclient.errors import HttpError
 from flask import Blueprint, jsonify, request, current_app
 from oauth2client.client import (
-    credentials_from_code, FlowExchangeError, AccessTokenRefreshError
+    AccessTokenCredentials, FlowExchangeError, AccessTokenRefreshError
 )
 import httplib2
 
@@ -31,47 +31,32 @@ GPLUS_SERVICE = build('plus', 'v1')
 def connect():
     # Get the code from the POST body
     json = request.get_json()
-    if json is None or 'code' not in json:
+    if json is None or 'access_token' not in json:
         r = jsonify({
-            'error': 'no_code',
-            'message': 'no code in body',
+            'error': 'no_access_token',
+            'message': 'no access_token in body',
         })
-        r.status_code = 400
+        r.status_access_token = 400
         return r
-    code = json['code']
+    access_token = json['access_token']
 
-    # Exchange access token for credentials
-    try:
-        credentials = credentials_from_code(
-            client_id=current_app.config['GOOGLE_CLIENT_ID'],
-            client_secret=current_app.config['GOOGLE_CLIENT_SECRET'],
-            scope='profile', code=code, redirect_uri='postmessage',
-        )
-    except FlowExchangeError as e:
-        r = jsonify({
-            'error': 'bad_code',
-            'message': 'failed to upgrade access token (%s)' % e
-        })
-        r.status_code = 401
-        return r
+    # Create access token-only credentials
+    credentials = AccessTokenCredentials(
+        access_token, user_agent=None,
+        revoke_uri='https://accounts.google.com/o/oauth2/revoke',
+    )
 
-    assert credentials is not None
+    # Create authorized HTTP client
+    http = httplib2.Http()
+    http = credentials.authorize(http)
 
     try:
-        # Create authorized HTTP client
-        http = httplib2.Http()
-        http = credentials.authorize(http)
-
         # Request basic user info
         req = GPLUS_SERVICE.people().get(userId='me')
         profile = req.execute(http=http)
-    except AccessTokenRefreshError as e:
-        r = jsonify({
-            'error': 'refresh_error',
-            'message': 'failed to refresh access token (%s)' % e,
-        })
-        r.status_code = 401
-        return r
+    finally:
+        # Always try to revoke the token
+        credentials.revoke(http=http)
 
     # Extract data of interest
     displayname = profile['displayName']
