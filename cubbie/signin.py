@@ -86,7 +86,7 @@ def connect():
     is_new_user = user == None
     if is_new_user:
         # No, create one
-        user = User(displayname=displayname)
+        user = User(displayname=displayname, image_url=image_url)
         db.session.add(user)
         new_user_id = UserIdentity(
             provider='gplus', provider_user_id=gplus_id,

@@ -13,6 +13,7 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     displayname = db.Column(db.Text, nullable=False)
+    image_url = db.Column(db.Text)
     productions = db.relationship('Production', secondary='capabilities')
 
 db.Index('idx_user_displayname', User.displayname)
