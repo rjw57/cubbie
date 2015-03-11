@@ -128,27 +128,11 @@ gapiPromise.then(function() {
     );
 });
 
-// After sign in, retrieve user info
+// After sign in, store token and redirect
 signinPromise.then(function(signinResponse) {
-    var token = signinResponse.token;
+    // Record token in localStorage
+    window.localStorage.setItem('cubbieAuthToken', signinResponse.token);
 
-    $.ajax({
-        url: apiProfileUrl,
-        headers: {
-            'Authorization': 'Bearer ' + token,
-        },
-        dataType: 'json',
-        success: function(response) {
-            $.notify({
-                title: 'Welcome, ' + response.displayname,
-                message: '<img src="' + response.image.url + '">',
-            }, {
-                type: 'success',
-                delay: 0,
-            });
-        },
-        error: function(err) {
-            console.error('error loading profile', err);
-        },
-    });
+    // Redirect
+    window.location.href = redirectUrl;
 });

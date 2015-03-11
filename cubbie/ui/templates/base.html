@@ -39,6 +39,9 @@
     {% endblock %}
 
     {% block scripts %}
+    <!-- ES6 promises polyfill -->
+    <script src="{{ url_for('ui.static', filename='vendor/js/es6-promise-2.0.1.min.js') }}"></script>
+
     <!-- jQuery -->
     <script src="{{ bower_url_for('jquery', 'dist/jquery.min.js') }}"></script>
 

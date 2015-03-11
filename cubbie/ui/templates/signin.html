@@ -56,13 +56,11 @@
 <!-- Google sign in API -->
 <script src="https://apis.google.com/js/client:platform.js?onload=gapiLoaded" async defer></script>
 
-<!-- ES6 promises polyfill -->
-<script src="{{ url_for('ui.static', filename='vendor/js/es6-promise-2.0.1.min.js') }}"></script>
-
 <!-- Signin page JavaScript -->
 <script>
 var googleConnectUrl = '{{ google.connect_url }}';
 var apiProfileUrl = '{{ url_for('api.profile') }}';
+var redirectUrl = '{{ redirect_url }}';
 </script>
 <script src="{{ url_for('ui.static', filename='js/signin.js') }}"></script>
 {% endblock %}

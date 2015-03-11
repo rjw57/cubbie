@@ -43,6 +43,7 @@ def index():
 @ui.route('/signin')
 def signin():
     return render_template('signin.html',
+        redirect_url=url_for('ui.index'),
         google=dict(
             client_id=current_app.config['GOOGLE_CLIENT_ID'],
             connect_url=url_for('signin.gplus.connect'),
