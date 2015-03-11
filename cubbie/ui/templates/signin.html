@@ -6,6 +6,8 @@
     <meta name="google-signin-scope" content="profile" />
     <meta name="google-signin-cookiepolicy" content="single_host_origin" />
     <meta name="google-signin-callback" content="signinCallback" />
+    <link rel="stylesheet"
+        href="{{ url_for('ui.static', filename='css/signin.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -23,6 +25,24 @@
                     <button id="gplusButton" disabled class="btn btn-lg btn-success btn-block">
                         Sign in with Google
                     </button>
+
+                    {% if config.DEBUG %}
+                    <div class="login-or">
+                        <hr class="hr-or">
+                        <span class="span-or">or</span>
+                    </div>
+
+<form role="form" id="tokenForm">
+    <div class="form-group">
+        <label for="manualToken">Authorisation token</label>
+        <input type="text" class="form-control input-lg" id="manualToken">
+    </div>
+    <button type="submit" class="btn btn-lg btn-block btn-primary">
+        Log In
+    </button>
+</form>
+                    {% endif %}
+
                 </div>
             </div>
         </div>

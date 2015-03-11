@@ -56,6 +56,17 @@ function ohBugger() {
 
 // A promise resolved with an authorization token after signin.
 var signinPromise = new Promise(function(resolve, reject) {
+    // If there's a token form, it can be used to directly paste in
+    // an auth token.
+    $('#tokenForm').submit(function() {
+        var userData = {
+            is_new_user: false,
+            token: $('#manualToken').val(),
+        };
+        resolve(userData);
+        return false;
+    });
+
     // replace global signinCallback function
     signinCallback = function(authResult) {
         if(authResult.status && authResult.status.signed_in) {
@@ -130,7 +141,7 @@ signinPromise.then(function(signinResponse) {
         success: function(response) {
             $.notify({
                 title: 'Welcome, ' + response.displayname,
-                message: '',
+                message: '<img src="' + response.image.url + '">',
             }, {
                 type: 'success',
                 delay: 0,
