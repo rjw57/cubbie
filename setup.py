@@ -14,6 +14,7 @@ setup(
     install_requires=[
         # Flask-related modules
         "flask",
+        "flask-bower",
         "flask-migrate",
         "flask-script",
         "flask-sqlalchemy",

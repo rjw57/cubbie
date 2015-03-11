@@ -6,17 +6,20 @@ from flask import (
     Flask, Blueprint, jsonify, render_template, current_app,
     url_for
 )
+from flask_bower import Bower
 from flask_jwt import jwt_required, JWT, current_user
 
 from cubbie.model import db, User, Production, Capability
 from cubbie.signin import gplus
 
 jwt = JWT()
+bower = Bower()
 
 def create_app():
     app = Flask(__name__)
     db.init_app(app)
     jwt.init_app(app)
+    bower.init_app(app)
 
     app.register_blueprint(ui)
     app.register_blueprint(api, url_prefix='/api')
