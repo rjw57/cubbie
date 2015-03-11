@@ -35,30 +35,9 @@
 <!-- Google sign in API -->
 <script src="https://apis.google.com/js/client:platform.js?onload=gapiLoaded" async defer></script>
 
+<!-- Signin page JavaScript -->
 <script>
-function gapiLoaded() {
-    gapi.signin.render('gplusButton');
-    document.getElementById('gplusButton').disabled = false;
-}
-
-function signinCallback(authResult) {
-    var connectUrl = '{{ google.connect_url }}';
-    var body;
-
-    if(authResult.access_token) {
-        // Request our own JWT-based access token.
-        body = { access_token: authResult.access_token };
-        $.ajax({
-            url: connectUrl,
-            type: 'POST',
-            data: JSON.stringify(body),
-            contentType: 'application/json; charset=utf-8',
-            dataType: 'json',
-            success: function(response) {
-                console.log('resp:', response);
-            },
-        });
-    }
-}
+var googleConnectUrl = '{{ google.connect_url }}';
 </script>
+<script src="{{ url_for('ui.static', filename='js/signin.js') }}"></script>
 {% endblock %}
