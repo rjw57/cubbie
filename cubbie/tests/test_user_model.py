@@ -2,7 +2,9 @@
 Test User model
 
 """
+from mixer.backend.flask import mixer
 import pytest
+from sqlalchemy.exc import IntegrityError
 
 from cubbie.model import User
 from cubbie.fixture import create_user_fixtures
@@ -31,3 +33,10 @@ def test_delete_user(users, session):
     session.commit()
     assert User.query.filter_by(displayname=u.displayname).count() == 0
     assert User.query.count() == n_u - 1
+
+def test_image_url_optional(session):
+    """Users need not have an image_url set."""
+    u1 = mixer.blend(User, image_url=None)
+    session.add(u1) # ok
+    u2 = mixer.blend(User, image_url='http://example.com/img.jpg')
+    session.add(u2) # ok
