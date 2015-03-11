@@ -4,6 +4,7 @@ Various useful pytest fixtures and configuration.
 """
 import uuid
 
+from faker import Factory
 from flask.ext.migrate import Migrate, upgrade, downgrade
 from mixer.backend.flask import mixer
 import pytest
@@ -108,3 +109,8 @@ def member_user(session, capabilities):
 def member_token(member_user):
     """A token for member_user"""
     return make_user_token(member_user)
+
+@pytest.fixture()
+def fake():
+    """A faker instance."""
+    return Factory().create()

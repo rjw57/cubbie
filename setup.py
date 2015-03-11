@@ -33,6 +33,9 @@ setup(
         # Third-party authentication methods
         "oauth2client",
         "google-api-python-client",
+
+        # Misc packages
+        "pydenticon",
     ],
     tests_require=[
         "tox",

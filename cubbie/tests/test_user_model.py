@@ -34,9 +34,10 @@ def test_delete_user(users, session):
     assert User.query.filter_by(displayname=u.displayname).count() == 0
     assert User.query.count() == n_u - 1
 
-def test_image_url_optional(session):
+def test_image_url_optional(session, fake):
     """Users need not have an image_url set."""
     u1 = mixer.blend(User, image_url=None)
     session.add(u1) # ok
-    u2 = mixer.blend(User, image_url='http://example.com/img.jpg')
+    u2 = mixer.blend(User, image_url=fake.url)
     session.add(u2) # ok
+    session.commit()

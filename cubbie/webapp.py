@@ -13,6 +13,7 @@ from flask_jwt import (
 
 from cubbie.model import db, User, Production, Capability
 from cubbie.signin import gplus
+from cubbie.blueprint.identicon import identicon
 
 jwt = JWT()
 bower = Bower()
@@ -26,6 +27,7 @@ def create_app():
     app.register_blueprint(ui)
     app.register_blueprint(api, url_prefix='/api')
     app.register_blueprint(gplus, url_prefix='/signin/gplus')
+    app.register_blueprint(identicon, url_prefix='/identicon')
 
     return app
 
@@ -60,10 +62,17 @@ def profile():
         for p in productions_q
     )
 
+    # Get some image url for the user
+    image_url = current_user.image_url
+    if image_url is None:
+        image_url = url_for('identicon.profile', hash=current_user.id)
+    image = dict(url=image_url)
+
     return jsonify({
         '_type': 'User#profile',
         'displayname': current_user.displayname,
         'productions': productions,
+        'image': image,
     })
 
 @jwt.user_handler
