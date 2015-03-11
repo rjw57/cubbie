@@ -11,7 +11,9 @@ db = SQLAlchemy()
 class User(db.Model):
     __tablename__ = 'users'
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True,
+        server_default=db.text('random_id()')
+    )
     displayname = db.Column(db.Text, nullable=False)
     image_url = db.Column(db.Text)
     productions = db.relationship('Production', secondary='capabilities')
@@ -36,7 +38,9 @@ db.Index(
 class Production(db.Model):
     __tablename__ = 'productions'
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True,
+        server_default=db.text('random_id()')
+    )
     name = db.Column(db.Text, nullable=False)
     slug = db.Column(db.Text, nullable=False)
     users = db.relationship('User', secondary='capabilities')
@@ -47,7 +51,9 @@ db.Index('idx_production_slug', Production.slug)
 class Performance(db.Model):
     __tablename__ = 'performances'
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True,
+        server_default=db.text('random_id()')
+    )
     starts_at = db.Column(db.DateTime(timezone=True), nullable=False)
     ends_at = db.Column(db.DateTime(timezone=True), nullable=False)
     production_id = db.Column(db.Integer, db.ForeignKey('productions.id'),
