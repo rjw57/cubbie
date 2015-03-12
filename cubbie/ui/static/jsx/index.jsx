@@ -30,7 +30,12 @@ dispatcher.register(function(payload) {
 // Create top-level application component.
 var application = (
     <Application>
-        <Navigation />
+        <Navigation>
+            <div className="navbar-default sidebar" role="navigation">
+                <div className="sidebar-nav navbar-collapse">
+                </div>
+            </div>
+        </Navigation>
         <div id="page-wrapper">
             <div className="row">
                 <div className="col-lg-12">

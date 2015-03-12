@@ -86,10 +86,7 @@ var Navigation = React.createClass({
         { userOrSignIn }
     </ul>
 
-    <div className="navbar-default sidebar" role="navigation">
-        <div className="sidebar-nav navbar-collapse">
-        </div>
-    </div>
+    { this.props.children }
 </nav>
         );
     },
@@ -123,6 +120,7 @@ var NavUserDropdown = React.createClass({
 
 var NavSignIn = React.createClass({
     render: function() {
-        return <li><a href="#">Sign In</a></li>;
+        // FIXME: don't hard code URLs
+        return <li><a href="/signin">Sign In</a></li>;
     },
 });
