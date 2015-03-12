@@ -2,99 +2,127 @@
 
 "use strict";
 
-var HelloWorld = React.createClass({
+// ClientMixin is a mixin which registers with the dispatcher in order to
+// respond to client updates. It calls this.clientDidUpdate to reflect new
+// clients when they arrive.
+var ClientMixin = {
+    getInitialState: function() {
+        if(!window.dispatcher) {
+            // in the absence of a dispatcher, we can only return the
+            // unauthorised client.
+            return { client: new cubbie.Client() };
+        }
+
+        var self = this, d = window.dispatcher;
+        return {
+            client: new cubbie.Client(),
+            clientMixinDispatcherId: d.register(function(payload) {
+                if(!payload.actionType) { return; }
+                if(payload.actionType != 'client-update') { return; }
+                if(self.clientDidUpdate) {
+                    self.clientDidUpdate(payload.client);
+                }
+            }),
+        };
+    },
+    componentWillUnmount: function() {
+        var d = window.dispatcher;
+        if(d && this.state.clientMixinDispatcherId) {
+            d.unregister(this.state.clientMixinDispatcherId);
+        }
+    },
+};
+
+var Application = React.createClass({
+    mixins: [ClientMixin],
+    getInitialState: function() {
+        return { };
+    },
     render: function() {
+        var p = this.state.profile;
+        return (<div>
+            { React.Children.map(this.props.children, function(c) {
+                return React.addons.cloneWithProps(c, {
+                    profile: p,
+                });
+            }) }
+        </div>);
+    },
+    clientDidUpdate: function(client) {
+        var self = this;
+
+        this.replaceState({ });
+        if(client.getIsAuthorized()) {
+            client.getProfile().then(function(profile) {
+                self.setState({ profile: profile });
+            });
+        }
+    },
+});
+
+var Navigation = React.createClass({
+    render: function() {
+        var p = this.props.profile;
+        var userOrSignIn;
+        if(p) {
+            userOrSignIn = <NavUserDropdown profile={p}/>;
+        } else {
+            userOrSignIn = <NavSignIn/>;
+        }
+
         return (
-            <p>Hello, world, {this.props.authToken}</p>
+<nav className="navbar navbar-default navbar-static-top" role="navigation" style={{marginBottom: 0}}>
+    <div className="navbar-header">
+        <button type="button" className="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span className="sr-only">Toggle navigation</span>
+            <span className="icon-bar"></span>
+            <span className="icon-bar"></span>
+            <span className="icon-bar"></span>
+        </button>
+        <a className="navbar-brand" href="{{ url_for('ui.index') }}">Cubbie</a>
+    </div>
+
+    <ul className="nav navbar-top-links navbar-right">
+        { userOrSignIn }
+    </ul>
+
+    <div className="navbar-default sidebar" role="navigation">
+        <div className="sidebar-nav navbar-collapse">
+        </div>
+    </div>
+</nav>
         );
     },
 });
 
-// AuthorisedPage is a component which maintains an authorisation token in local
-// storage which persists between sessions. The default value is the value from
-// local storage. A "null" token corresponds to no user being logged in.
-//
-// The authorisation token is passed to the children via the authToken prop but
-// only after the token is verified.
-//
-// The key used to set/retrieve the auth token is set via the "authTokenKey"
-// prop. The default is "authToken".
-//
-// The dispatcher prop can be set to a flux-style dispatcher instance. This
-// prop will be passed to all children.
-//
-// AuthorisedPage listens via the dispatcher for a payload with actionType of
-// "auth-token-update". The auth token is then set to the value of the "token"
-// field in the payload. If "tokenKey" is set in the payload, it must match the
-// authTokenKey property before the auth token is updated.
-//
-// *DO NOT MODIFY THE LOCAL STORAGE DIRECTLY.*
-//
-// Unknown props are transferred onto the div container wrapping children.
-var AuthorisedPage = React.createClass({
-    getInitialState: function() {
-        var dispatcherId;
-
-        // If there's a global dispatcher, register
-        if(this.props.dispatcher) {
-            dispatcherId = this.props.dispatcher.register(this.newPayload);
-        }
-
-        return { dispatcherId: dispatcherId, verifiedAuthToken: null };
-    },
-    getDefaultProps: function() {
-        return { authTokenKey: 'authToken' };
-    },
+var NavUserDropdown = React.createClass({
     render: function() {
-        var authToken = this.state.verifiedAuthToken;
-        var dispatcher = this.props.dispatcher;
+        var p = this.props.profile;
         return (
-            <div {...this.props}>
-            {React.Children.map(this.props.children, function(child) {
-                return React.addons.cloneWithProps(child, {
-                    dispatcher: dispatcher, authToken: authToken
-                });
-            })}
-            </div>
-        )
+<li className="dropdown">
+    <a href="#" className="dropdown-toggle" data-toggle="dropdown"
+            role="button" aria-expanded="false">
+        <img src={ p.image.url } className="img-circle"
+            className="navbar-avatar img-circle" />
+        { this.props.profile.displayname }
+        <span className="caret"></span>
+    </a>
+    <ul className="dropdown-menu" role="menu">
+        <li><a href="#" onClick={this.signOut}>Sign out</a></li>
+    </ul>
+</li>
+        );
     },
-    componentWillMount: function() {
-        // If there's a token in local storage, verify it
-        this.verifyToken(window.localStorage.getItem(this.props.authTokenKey));
-    },
-    componentWillUnmount: function() {
-        // Unregister from the global dispatcher
-        if(this.props.dispatcher && this.state.dispatcherId) {
-            this.props.dispatcher.unregister(this.state.dispatcherId);
-        }
-    },
-    newPayload: function(payload) {
-        // Ignore actions unrelated to us
-        if(!payload.actionType || payload.actionType !== 'auth-token-update') {
-            return;
-        }
-
-        // If there's a tokenKey property, it should match.
-        if(payload.tokenKey && payload.tokenKey != this.props.authTokenKey) {
-            return;
-        }
-
-        // Re-verify token
-        this.verifyToken(payload.token);
-    },
-    verifyToken: function(unverifiedToken) {
-        var self = this;
-        cubbie.verifyToken(unverifiedToken).then(function(verifiedToken) {
-            // Update local storage
-            window.localStorage.setItem(self.props.authTokenKey, verifiedToken);
-
-            // Update state
-            self.setState({ verifiedAuthToken: verifiedToken });
-        }).catch(function(err) {
-            console.error('token verification failed:', err);
-
-            // Update state
-            self.setState({ verifiedAuthToken: null });
+    signOut: function() {
+        if(!window.dispatcher) { return; }
+        window.dispatcher.dispatch({
+            actionType: 'auth-token-update', token: null
         });
+    },
+});
+
+var NavSignIn = React.createClass({
+    render: function() {
+        return <li><a href="#">Sign In</a></li>;
     },
 });

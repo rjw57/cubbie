@@ -31,6 +31,9 @@
         <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
 
+    <!-- Shared CSS -->
+    <link href="{{ url_for('ui.static', filename='css/common.css') }}" rel="stylesheet">
+
     {% endblock %}
 </head>
 
@@ -71,6 +74,7 @@
     <script src="{{ url_for('ui.static', filename='js/api.js') }}"></script>
     <script>
         cubbie.endpoints.verifyToken = '{{ url_for('api.verify_token') }}';
+        cubbie.endpoints.profile = '{{ url_for('api.profile') }}';
     </script>
     {% endblock %}
 </body>
