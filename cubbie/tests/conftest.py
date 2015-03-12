@@ -84,25 +84,30 @@ def session(app, request):
 def users(session):
     """Create mock users."""
     create_user_fixtures(5)
+    session.commit()
 
 @pytest.fixture()
 def productions(session):
     create_production_fixtures(5)
+    session.commit()
 
 @pytest.fixture()
 def performances(session, productions):
     create_performance_fixtures(15)
     create_production_fixtures(5)
+    session.commit()
 
 @pytest.fixture()
 def capabilities(session, productions, users):
     create_capability_fixtures(15)
+    session.commit()
 
 @pytest.fixture()
 def member_user(session, capabilities):
     """A user who is a member of a production."""
-    u = mixer.blend(User, displayname='testuser')
+    u = mixer.blend(User, displayname='testuser', is_active=True)
     mixer.blend(Capability, user=u, type='member', production=mixer.SELECT)
+    session.commit()
     return u
 
 @pytest.fixture()
