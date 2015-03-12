@@ -71,13 +71,14 @@ def connect():
     is_new_user = user == None
     if is_new_user:
         # No, create one
-        user = User(displayname=displayname, image_url=image_url)
+        user = User(displayname=displayname, image_url=image_url,
+                is_active=True)
         db.session.add(user)
         new_user_id = UserIdentity(
             provider='gplus', provider_user_id=gplus_id,
             user=user
         )
-        db.session.add(new_user_id, is_active=True)
+        db.session.add(new_user_id)
         db.session.commit()
 
     # Create a JWT for the user
