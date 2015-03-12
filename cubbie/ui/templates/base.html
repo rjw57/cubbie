@@ -69,6 +69,9 @@
 
     <!-- Cubbie API -->
     <script src="{{ url_for('ui.static', filename='js/api.js') }}"></script>
+    <script>
+        cubbie.endpoints.verifyToken = '{{ url_for('api.verify_token') }}';
+    </script>
     {% endblock %}
 </body>
 </html>
