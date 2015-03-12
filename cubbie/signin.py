@@ -77,7 +77,7 @@ def connect():
             provider='gplus', provider_user_id=gplus_id,
             user=user
         )
-        db.session.add(new_user_id)
+        db.session.add(new_user_id, is_active=True)
         db.session.commit()
 
     # Create a JWT for the user
