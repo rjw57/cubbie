@@ -4,7 +4,7 @@ WSGI-compatible web application object for cubbie.
 """
 from flask import (
     Flask, Blueprint, jsonify, render_template, current_app,
-    url_for, redirect
+    url_for, redirect, request, abort
 )
 from flask_bower import Bower
 from flask_jwt import (
@@ -76,12 +76,17 @@ def profile():
         'image': image,
     })
 
+@api.route('/verify')
+@jwt_required()
+def verify_token():
+    return jsonify(dict(status='ok'))
+
 @jwt.user_handler
 def get_user_from_jwt(payload):
     try:
         u = User.query.get(payload['user'])
     except KeyError:
-        abort(400, {'error': 'No user key in JWT payload'})
-    if u is None:
-        abort(400, {'error': 'No such user'})
+        abort(401, {'error': 'No user key in JWT payload'})
+    if u is None or not u.is_active:
+        abort(401, {'error': 'No such user'})
     return u

@@ -16,6 +16,11 @@ class User(db.Model):
     )
     displayname = db.Column(db.Text, nullable=False)
     image_url = db.Column(db.Text)
+
+    # N.B. users are initially inactive
+    is_active = db.Column(db.Boolean, nullable=False,
+        server_default=db.text("'0'")
+    )
     productions = db.relationship('Production', secondary='capabilities')
 
 db.Index('idx_user_displayname', User.displayname)

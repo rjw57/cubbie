@@ -41,3 +41,11 @@ def test_image_url_optional(session, fake):
     u2 = mixer.blend(User, image_url=fake.url)
     session.add(u2) # ok
     session.commit()
+
+def test_default_inactive(session):
+    """New users are by default inactive."""
+    u = mixer.blend(User, is_active=None)
+    session.add(u)
+    session.commit()
+    assert not User.query.get(u.id).is_active
+

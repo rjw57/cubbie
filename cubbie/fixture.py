@@ -31,7 +31,7 @@ fake = Faker()
 @debug_only
 def create_user_fixtures(n=5):
     """Create test fixtures for User. Requires app.debug==True."""
-    mixer.cycle(n).blend(User, displayname=fake.name)
+    mixer.cycle(n).blend(User, displayname=fake.name, is_active=mixer.RANDOM)
 
 @debug_only
 def create_production_fixtures(n=5):
