@@ -54,8 +54,11 @@
     <!-- Bootstrap notify -->
     <script src="{{ bower_url_for('remarkable-bootstrap-notify', 'dist/bootstrap-notify.min.js') }}"></script>
 
+    <!-- Flux -->
+    <script src="{{ bower_url_for('flux', 'dist/Flux.js') }}"></script>
+
     <!-- React from CDN -->
-    <script src="https://fb.me/react-0.13.0.js"></script>
+    <script src="https://fb.me/react-with-addons-0.13.0.js"></script>
     <script src="https://fb.me/JSXTransformer-0.13.0.js"></script>
 
     <!-- Custom Theme JavaScript -->
@@ -63,6 +66,9 @@
 
     <!-- Common react components -->
     <script type="text/jsx" src="{{ url_for('ui.static', filename='jsx/components.jsx') }}"></script>
+
+    <!-- Cubbie API -->
+    <script src="{{ url_for('ui.static', filename='js/api.js') }}"></script>
     {% endblock %}
 </body>
 </html>

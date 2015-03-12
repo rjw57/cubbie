@@ -1,5 +1,8 @@
+var dispatcher = new Flux.Dispatcher();
+
 React.render(
-    <HelloWorld />,
+    <AuthorisedPage dispatcher={dispatcher} authTokenKey="cubbieAuthToken">
+        <HelloWorld />
+    </AuthorisedPage>,
     document.getElementById('page-wrapper')
 );
-
