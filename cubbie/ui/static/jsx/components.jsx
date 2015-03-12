@@ -99,8 +99,7 @@ var NavUserDropdown = React.createClass({
 <li className="dropdown">
     <a href="#" className="dropdown-toggle" data-toggle="dropdown"
             role="button" aria-expanded="false">
-        <img src={ p.image.url } className="img-circle"
-            className="navbar-avatar img-circle" />
+        <img src={ p.image.url } className="navbar-avatar img-circle" />
         { this.props.profile.displayname }
         <span className="caret"></span>
     </a>
