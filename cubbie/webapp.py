@@ -2,53 +2,29 @@
 WSGI-compatible web application object for cubbie.
 
 """
-from flask import (
-    Flask, Blueprint, jsonify, render_template, current_app,
-    url_for, redirect, request, abort
-)
-from flask_bower import Bower
-from flask_jwt import (
-    jwt_required, JWT, current_user, verify_jwt, JWTError
-)
+from flask import Flask, Blueprint, jsonify, url_for, abort
+from flask_jwt import jwt_required, JWT, current_user
 
 from cubbie.model import db, User, Production, Capability
-from cubbie.signin import gplus
 from cubbie.blueprint.identicon import identicon
 
 jwt = JWT()
-bower = Bower()
 
-def create_app():
+def create_app(api_url_prefix=''):
     app = Flask(__name__)
-    db.init_app(app)
-    jwt.init_app(app)
-    bower.init_app(app)
-
-    app.register_blueprint(ui)
-    app.register_blueprint(api, url_prefix='/api')
-    app.register_blueprint(gplus, url_prefix='/signin/gplus')
-    app.register_blueprint(identicon, url_prefix='/identicon')
-
+    init_app(app, api_url_prefix)
     return app
 
-ui = Blueprint(
-    'ui', __name__, template_folder='ui/templates',
-    static_folder='ui/static', static_url_path='/static/ui',
-)
+def init_app(app, api_url_prefix=''):
+    db.init_app(app)
+    jwt.init_app(app)
 
-@ui.route('/')
-def index():
-    return render_template('index.html')
-
-@ui.route('/signin')
-def signin():
-    return render_template('signin.html',
-        redirect_url=url_for('ui.index'),
-        google=dict(
-            client_id=current_app.config['GOOGLE_CLIENT_ID'],
-            connect_url=url_for('signin.gplus.connect'),
-        ),
+    app.register_blueprint(api, url_prefix=api_url_prefix)
+    app.register_blueprint(
+        identicon, url_prefix=api_url_prefix + '/identicon'
     )
+
+    return app
 
 api = Blueprint('api', __name__)
 

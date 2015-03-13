@@ -11,7 +11,7 @@ from mixer.backend.flask import mixer
 
 from cubbie.webapp import create_app
 from cubbie.model import db
-from cubbie.model import User, Production, Performance, SalesDatum, Capability
+from cubbie.model import User
 from cubbie.fixture import (
     create_user_fixtures, create_production_fixtures,
     create_performance_fixtures, create_sales_fixtures, create_capability_fixtures
@@ -22,7 +22,7 @@ def create_manager_app(config=None):
     app = create_app()
     if config is not None:
         app.config.from_pyfile(config)
-    migrate = Migrate(app, db)
+    Migrate(app, db)
 
     return app
 
@@ -32,7 +32,7 @@ manager = Manager(create_manager_app)
 def genfake():
     if not current_app.debug:
         logging.error(
-            'genfake command is only available in deebug modfe. '
+            'genfake command is only available in debug mode. '
             'Ensure that DEBUG is True in app config.'
         )
         return
@@ -49,7 +49,7 @@ def genfake():
 def mktoken(userid):
     u = User.query.get(userid)
     if u is None:
-        logging.error('No such user: %s' % userid)
+        logging.error('No such user: %s', userid)
         return
 
     token = make_user_token(u)

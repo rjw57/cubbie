@@ -9,6 +9,7 @@ setup(
     entry_points={
         'console_scripts': [
             'cubbie = cubbie.manager:main',
+            'cubbieui = cubbieui.manager:main',
         ],
     },
     install_requires=[
