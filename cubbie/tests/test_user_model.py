@@ -6,7 +6,7 @@ from mixer.backend.flask import mixer
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from cubbie.model import User
+from cubbie.model import User, UserIdentity, Capability
 from cubbie.fixture import create_user_fixtures
 
 def test_create(session):
@@ -49,3 +49,61 @@ def test_default_inactive(session):
     session.commit()
     assert not User.query.get(u.id).is_active
 
+def test_delete_user_cascades_identity(users, session):
+    """Deleting a user with associated identity succeeds."""
+    u1 = mixer.blend(User)
+    session.add(u1)
+    u1id = mixer.blend(UserIdentity, user=u1)
+    session.add(u1id)
+    session.commit()
+
+    assert User.query.get(u1.id) is not None
+    assert UserIdentity.query.get(u1id.id) is not None
+
+    u1_id = u1.id
+    u1id_id = u1id.id
+
+    session.delete(u1)
+    session.commit()
+
+    assert User.query.get(u1_id) is None
+    assert UserIdentity.query.get(u1id_id) is None
+
+def test_delete_user_cascades_capabilities(users, session, productions):
+    """Deleting a user with associated capabilitiess succeeds."""
+    u1 = mixer.blend(User)
+    session.add(u1)
+    u1cap = mixer.blend(Capability, user=u1, production=mixer.SELECT)
+    session.add(u1cap)
+    session.commit()
+
+    assert User.query.get(u1.id) is not None
+    assert Capability.query.get(u1cap.id) is not None
+
+    u1_id = u1.id
+    u1cap_id = u1cap.id
+
+    session.delete(u1)
+    session.commit()
+
+    assert User.query.get(u1_id) is None
+    assert Capability.query.get(u1cap_id) is None
+
+def test_delete_user_cascades_production(users, session, productions):
+    """Deleting a user with associated productions succeeds."""
+    u1 = mixer.blend(User)
+    session.add(u1)
+    u1cap = mixer.blend(Capability, user=u1, production=mixer.SELECT)
+    session.add(u1cap)
+    session.commit()
+
+    u1prod = u1.productions[0]
+    assert u1 in u1prod.users
+    assert User.query.get(u1.id) is not None
+
+    u1_id = u1.id
+    session.delete(u1)
+    session.commit()
+
+    assert u1 not in u1prod.users
+    assert User.query.get(u1_id) is None

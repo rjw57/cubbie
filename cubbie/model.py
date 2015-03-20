@@ -23,6 +23,16 @@ class User(db.Model):
     )
     productions = db.relationship('Production', secondary='capabilities')
 
+    identities = db.relationship(
+        'UserIdentity', backref='user',
+        cascade='all, delete-orphan', passive_deletes=True
+    )
+
+    capabilities = db.relationship(
+        'Capability', backref='user', cascade='all, delete-orphan',
+        passive_deletes=True
+    )
+
 db.Index('idx_user_displayname', User.displayname)
 
 class UserIdentity(db.Model):
@@ -31,9 +41,14 @@ class UserIdentity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     provider = db.Column(db.Text, nullable=False)
     provider_user_id = db.Column(db.Text, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-
-    user = db.relationship('User', uselist=False, backref='identities')
+    user_id = db.Column(
+            db.Integer,
+            db.ForeignKey(
+                'users.id', ondelete='CASCADE',
+                name='user_identities_user_id_fkey'
+            ),
+            nullable=False
+    )
 
 db.Index(
     'idx_user_identities_provider_provider_id',
@@ -62,11 +77,16 @@ class Performance(db.Model):
     starts_at = db.Column(db.DateTime(timezone=True), nullable=False)
     ends_at = db.Column(db.DateTime(timezone=True), nullable=False)
     production_id = db.Column(db.Integer, db.ForeignKey('productions.id'),
-            nullable=False)
+        nullable=False)
     is_cancelled = db.Column(db.Boolean, nullable=False, default=False)
     is_deleted = db.Column(db.Boolean, nullable=False, default=False)
 
     production = db.relationship('Production', backref='performances')
+
+    sales = db.relationship(
+        'SalesDatum', backref='performance', cascade='all, delete-orphan',
+        passive_deletes=True
+    )
 
     __table_args__ = (
         # Ensure that performance is not -ve duration
@@ -83,13 +103,16 @@ class SalesDatum(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     measured_at = db.Column(db.DateTime(timezone=True), nullable=False)
-    performance_id = db.Column(db.Integer, db.ForeignKey('performances.id'),
-            nullable=False)
+    performance_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            'performances.id', name='sales_performance_id_fkey',
+            ondelete='CASCADE'
+        ),
+        nullable=False)
     is_valid = db.Column(db.Boolean, nullable=False, default=False)
     sold = db.Column(db.Integer, nullable=False)
     available = db.Column(db.Integer, nullable=False)
-
-    performance = db.relationship('Performance', uselist=False, backref='sales')
 
     __table_args__ = (
         # Ensure no. sold is +ve
@@ -110,12 +133,17 @@ class Capability(db.Model):
     __tablename__ = 'capabilities'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            'users.id', name='capabilities_user_id_fkey', ondelete='CASCADE'
+        ),
+        nullable=False
+    )
     production_id = db.Column(db.Integer, db.ForeignKey('productions.id'),
         nullable=False)
     type = db.Column(db.Enum(*CAPABILITIES, name='capability'), nullable=False)
 
-    user = db.relationship('User', backref='capabilities')
     production = db.relationship('Production')
 
 db.Index('idx_capabilities_user', Capability.user_id)
