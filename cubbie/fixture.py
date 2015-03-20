@@ -39,7 +39,7 @@ def create_production_fixtures(n=5):
     mixer.cycle(n).blend(Production, name=fake.sentence, slug=fake.slug)
 
 @debug_only
-def create_performance_fixtures(n=20):
+def create_performance_fixtures(n=20, production=mixer.SELECT):
     """Create test fixtures for Performance. Requires app.debug==True and >0
     Productions in database.
 
@@ -53,13 +53,13 @@ def create_performance_fixtures(n=20):
     mixer.cycle(n).blend(Performance,
         starts_at=mixer.sequence(sa),
         ends_at=mixer.sequence(ea),
-        production=mixer.SELECT,
+        production=production,
         is_cancelled=mixer.RANDOM,
         is_deleted=mixer.RANDOM,
     )
 
 @debug_only
-def create_sales_fixtures(n=20):
+def create_sales_fixtures(n=20, performance=mixer.SELECT):
     """Create test fixtures for SalesDatum. Requires app.debug==True and >0
     Performances in database.
 
@@ -78,20 +78,17 @@ def create_sales_fixtures(n=20):
 
     mixer.cycle(n).blend(SalesDatum,
         measured_at=mixer.sequence(ma),
-        performance=mixer.SELECT,
+        performance=performance,
         is_valid=mixer.RANDOM,
         sold=mixer.sequence(sold),
         available=mixer.sequence(avail),
     )
 
 @debug_only
-def create_capability_fixtures(n=20):
+def create_capability_fixtures(n=20, user=mixer.SELECT, production=mixer.SELECT):
     """Create test fixtures for Capability. Requires app.debug==True and >0
     Users and >0 Productions in database.
 
     """
 
-    mixer.cycle(n).blend(Capability,
-        user=mixer.SELECT,
-        production=mixer.SELECT,
-    )
+    mixer.cycle(n).blend(Capability, user=user, production=production)

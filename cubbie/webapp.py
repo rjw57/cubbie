@@ -52,10 +52,73 @@ def profile():
         'image': image,
     })
 
+@api.route('/profile/<int:id>')
+def user_info(id):
+    abort(400)
+#    u = User.query.get(id)
+#    if u is None:
+#        abort(404)
+#
+#    # Find productions user is a part of
+#    productions_q = Production.query.join(Capability).\
+#        filter(Capability.user == u)
+#    productions = list(
+#        dict(id=p.id)
+#        for p in productions_q
+#    )
+#
+#    # Get some image url for the user
+#    image_url = current_user.image_url
+#    if image_url is None:
+#        image_url = url_for('identicon.profile', hash=current_user.id)
+#    image = dict(url=image_url)
+#
+#    return jsonify({
+#        '_type': 'User#profile',
+#        'displayname': current_user.displayname,
+#        'productions': productions,
+#        'image': image,
+#    })
+
 @api.route('/verify')
 @jwt_required()
 def verify_token():
     return jsonify(dict(status='ok'))
+
+@api.route('/production/<slug>')
+def production(slug):
+    p = Production.query.filter(Production.slug == slug).first()
+    if p is None:
+        abort(404)
+
+    cq = Capability.query.filter(Capability.production == p).\
+        join(Production).join(User).\
+        with_entities(User.displayname, User.id, Capability.type)
+
+    users = []
+    for uname, uid, t in cq:
+        users.append(dict(
+            displayname=uname, type=t,
+            profileUrl=url_for('api.user_info', id=uid)
+        ))
+
+    performances = list(dict(
+        startsAt=p.starts_at.isoformat(),
+        duration=(p.ends_at - p.starts_at).total_seconds(),
+        performanceUrl=url_for('api.performance', id=p.id),
+        isCancelled=p.is_cancelled
+    ) for p in p.performances)
+
+    prod = dict(
+        _type='Production#summary', name=p.name,
+        users=users, performances=performances
+    )
+
+    return jsonify(prod)
+
+@api.route('/performance/<int:id>')
+def performance(id):
+    abort(400)
 
 @jwt.user_handler
 def get_user_from_jwt(payload):
